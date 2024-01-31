@@ -5,22 +5,30 @@ import { useForm } from "react-hook-form";
 import registerImg from "../../assets/register.jpg";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import {  UsernameIcon,  PasswordIcon,  MailIcon,  NameIcon } from "../../assets/RegisterIcons";
+import {
+  UsernameIcon,
+  PasswordIcon,
+  MailIcon,
+  NameIcon,
+} from "../../assets/RegisterIcons";
 import { useTheme } from "../../context/ThemeContext";
 import "./auth.css";
+import { useAppContext } from "../../context/AppContext";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { isDarkMode } = useTheme();
-
+  const { showToast } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => fetchUsers(), []);
   const fetchUsers = () => {
-    axios.get("https://doodlecollab-backend.onrender.com/api/users/register").then((res) => {
-      console.log(res.data);
-    });
+    axios
+      .get("https://doodlecollab-backend.onrender.com/api/users/register")
+      .then((res) => {
+        console.log(res.data);
+      });
   };
   const {
     register,
@@ -30,23 +38,25 @@ const Register = () => {
   } = useForm();
 
   const onSubmit = handleSubmit(async (data) => {
-  try {
-    await axios.post("https://doodlecollab-backend.onrender.com/api/users/register", {
-      email: data.email,
-      username: data.username,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      password: data.password,
-    });
-    alert("Registration Successful!");
-    fetchUsers();
-    navigate("/login");
-  } catch (error) {
-    console.log(error);
-    alert("Registration Failed!");
-  }
-});
-
+    try {
+      await axios.post(
+        "https://doodlecollab-backend.onrender.com/api/users/register",
+        {
+          email: data.email,
+          username: data.username,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          password: data.password,
+        }
+      );
+      showToast({ message: "Registration Success!", type: "SUCCESS" });
+      fetchUsers();
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+      showToast({ message: "Registration Failed!", type: "ERROR" });
+    }
+  });
 
   return (
     <section
@@ -54,17 +64,31 @@ const Register = () => {
       onSubmit={onSubmit}
     >
       <div className="auth-img">
-        <img src={registerImg} alt="registration image" />
+        <img
+          src={registerImg}
+          style={{
+            padding: "10px",
+            marginLeft: "50px",
+            marginTop: "5px",
+            borderRadius: "30px",
+          }}
+          alt="registration image"
+        />
       </div>
-      <div className="auth-right">
+      <div className="auth-right" style={{ marginTop: "80px" }}>
         <form className="auth-form">
-          <h1>Create New Account</h1>
-          <span>Please fill out the form below. All fields are required.</span>
+          <h1 style={{ color: isDarkMode ? "white" : "black" }}>
+            Create New Account
+          </h1>
+          <span style={{ color: isDarkMode ? "white" : "black" }}>
+            Please fill out the form below. All fields are required.
+          </span>
           <hr />
 
           <div className="auth-textbox">
             <MailIcon className="auth-icon" />
             <input
+              style={{ backgroundColor: "#fff" }}
               type="email"
               placeholder="Email Address"
               {...register("email", {
@@ -82,6 +106,7 @@ const Register = () => {
           <div className="auth-textbox">
             <UsernameIcon className="auth-icon" />
             <input
+              style={{ backgroundColor: "#fff" }}
               type="text"
               placeholder="Username"
               {...register("username", {
@@ -94,9 +119,13 @@ const Register = () => {
             <span className="error-message">{errors.username.message}</span>
           )}
           <div className="auth-namesec">
-            <div className="auth-textbox">
+            <div
+              className="auth-textbox"
+              style={{ marginLeft: "-1px", marginTop: "-1px" }}
+            >
               <NameIcon className="auth-icon" />
               <input
+                style={{ backgroundColor: "#fff" }}
                 type="text"
                 placeholder="Firstname"
                 {...register("firstName", {
@@ -104,9 +133,10 @@ const Register = () => {
                 })}
               />
             </div>
-            <div className="auth-textbox">
+            <div className="auth-textbox" style={{ marginTop: "-1px" }}>
               <NameIcon className="auth-icon" />
               <input
+                style={{ backgroundColor: "#fff" }}
                 type="text"
                 placeholder="Lastname"
                 {...register("lastName", {
@@ -120,9 +150,10 @@ const Register = () => {
           ) : errors.lastName ? (
             <span className="error-message">{errors.lastName.message}</span>
           ) : null}
-          <div className="auth-textbox">
+          <div className="auth-textbox" style={{ marginTop: "-1px" }}>
             <PasswordIcon className="auth-icon" />
             <input
+              style={{ backgroundColor: "#fff" }}
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               {...register("password", {
@@ -146,6 +177,7 @@ const Register = () => {
           <div className="auth-textbox">
             <PasswordIcon className="auth-icon" />
             <input
+              style={{ backgroundColor: "#fff" }}
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
               {...register("confirmPassword", {
@@ -170,9 +202,14 @@ const Register = () => {
               {errors.confirmPassword.message}
             </span>
           )}
-          <div className="auth-miscellaneous">
-            <span>Minimum 8 characters for secure password.</span>
-            <label className="auth-checkbox">
+          <div
+            className="auth-miscellaneous"
+            style={{ color: isDarkMode ? "white" : "black" }}
+          >
+            <span className="m-2">
+              Minimum 8 characters for secure password.
+            </span>
+            <label className="auth-checkbox m-1">
               <input
                 type="checkbox"
                 {...register("agree", {
@@ -180,8 +217,20 @@ const Register = () => {
                 })}
               />
               <span>
-                I agree to <span className="auth-link">DoodleCollab Terms</span>{" "}
-                and <span className="auth-link">Privacy Policy</span>
+                I agree to{" "}
+                <span
+                  className="auth-link"
+                  style={{ color: isDarkMode ? "white" : "black" }}
+                >
+                  DoodleCollab Terms
+                </span>{" "}
+                and{" "}
+                <span
+                  className="auth-link"
+                  style={{ color: isDarkMode ? "white" : "black" }}
+                >
+                  Privacy Policy
+                </span>
               </span>
             </label>
 
@@ -193,7 +242,11 @@ const Register = () => {
             </button>
             <span>
               Already a member?{" "}
-              <Link className="auth-link" to="/login">
+              <Link
+                className="auth-link"
+                to="/login"
+                style={{ color: isDarkMode ? "white" : "black" }}
+              >
                 Sign in
               </Link>
             </span>
