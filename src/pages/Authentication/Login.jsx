@@ -9,12 +9,13 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useTheme } from "../../context/ThemeContext";
 import "./auth.css";
 import { useAppContext } from "../../context/AppContext";
+import { useMutation } from "@tanstack/react-query";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const { showToast } = useAppContext();
+  const { showToast, updateLoggedIn } = useAppContext();
 
   const {
     register,
@@ -22,22 +23,33 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      const resData = await axios.post(
+  const { mutate: loginUserMutate } = useMutation({
+    mutationFn: (user) =>
+      axios.post(
         "https://doodlecollab-backend.onrender.com/api/users/login",
-        {
-          email: data.email,
-          password: data.password,
-        }
-      );
-      localStorage.setItem("token", resData.data.token);
-      showToast({ message: "Login Success!", type: "SUCCESS" });
-      navigate("/sketchbook");
-    } catch (error) {
-      console.log(error);
-      showToast({ message: "Login Failed!", type: "ERROR" });
-    }
+        user
+      ),
+  });
+
+  const onSubmit = handleSubmit(({ email, password }) => {
+    loginUserMutate(
+      {
+        email,
+        password,
+      },
+      {
+        onSuccess: (res) => {
+          localStorage.setItem("token", res.data.token);
+          updateLoggedIn(true);
+          showToast({ message: "Login Successful!", type: "SUCCESS" });
+          navigate("/sketchbook");
+        },
+        onError: () => {
+          updateLoggedIn(false);
+          showToast({ message: "Login Failed!", type: "ERROR" });
+        },
+      }
+    );
   });
 
   return (
@@ -49,8 +61,12 @@ const Login = () => {
       </div>
       <div className="auth-right">
         <form className="auth-form" onSubmit={onSubmit}>
-          <h1 className="md:mt-32">Welcome to DoodleCollab!</h1>
-          <p>Enter your Email, and Password!</p>
+          <h1 style={{ color: isDarkMode ? "white" : "black" }}>
+            Welcome to DoodleCollab!
+          </h1>
+          <p style={{ color: isDarkMode ? "white" : "black" }}>
+            Enter your Email, and Password!
+          </p>
           <hr />
           <div className="auth-textbox">
             <MailIcon className="auth-icon" />
@@ -75,6 +91,7 @@ const Login = () => {
               })}
             />
             <button
+              aria-label="VisibilityIcon btn"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >
@@ -90,13 +107,21 @@ const Login = () => {
           <div className="auth-textbox-footer">
             <span>
               New to DoodleCollab?{" "}
-              <Link className="auth-link" to="/register">
+              <Link
+                className="auth-link"
+                to="/register"
+                style={{ color: isDarkMode ? "white" : "black" }}
+              >
                 Click here to create
               </Link>
             </span>
             <span>
               Forget password?{" "}
-              <Link className="auth-link" to="/">
+              <Link
+                className="auth-link"
+                to="/"
+                style={{ color: isDarkMode ? "white" : "black" }}
+              >
                 Click here to find it
               </Link>
             </span>

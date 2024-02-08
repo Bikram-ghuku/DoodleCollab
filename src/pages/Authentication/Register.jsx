@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -14,6 +14,7 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import "./auth.css";
 import { useAppContext } from "../../context/AppContext";
+import { useMutation } from "@tanstack/react-query";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,14 +23,6 @@ const Register = () => {
   const { showToast } = useAppContext();
   const navigate = useNavigate();
 
-  useEffect(() => fetchUsers(), []);
-  const fetchUsers = () => {
-    axios
-      .get("https://doodlecollab-backend.onrender.com/api/users/register")
-      .then((res) => {
-        console.log(res.data);
-      });
-  };
   const {
     register,
     watch,
@@ -37,46 +30,46 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      await axios.post(
+  const { mutate: registerUserMutate } = useMutation({
+    mutationFn: (user) =>
+      axios.post(
         "https://doodlecollab-backend.onrender.com/api/users/register",
+        user
+      ),
+  });
+
+  const onSubmit = handleSubmit(
+    ({ email, username, firstName, lastName, password }) => {
+      registerUserMutate(
         {
-          email: data.email,
-          username: data.username,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          password: data.password,
+          email,
+          username,
+          firstName,
+          lastName,
+          password,
+        },
+        {
+          onSuccess: () => {
+            showToast({ message: "Registration Successful!", type: "SUCCESS" });
+            navigate("/login");
+          },
+          onError: () => {
+            showToast({ message: "Registration Failed!", type: "ERROR" });
+          },
         }
       );
-      showToast({ message: "Registration Success!", type: "SUCCESS" });
-      fetchUsers();
-      navigate("/login");
-    } catch (error) {
-      console.log(error);
-      showToast({ message: "Registration Failed!", type: "ERROR" });
     }
-  });
+  );
 
   return (
     <section
       className={`auth-section ${isDarkMode ? "dark-mode" : "white-mode"}`}
-      onSubmit={onSubmit}
     >
       <div className="auth-img">
-        <img
-          src={registerImg}
-          style={{
-            padding: "10px",
-            marginLeft: "50px",
-            marginTop: "5px",
-            borderRadius: "30px",
-          }}
-          alt="registration image"
-        />
+        <img src={registerImg} alt="registration image" />
       </div>
-      <div className="auth-right" style={{ marginTop: "80px" }}>
-        <form className="auth-form">
+      <div className="auth-right">
+        <form className="auth-form" onSubmit={onSubmit}>
           <h1 style={{ color: isDarkMode ? "white" : "black" }}>
             Create New Account
           </h1>
@@ -88,7 +81,6 @@ const Register = () => {
           <div className="auth-textbox">
             <MailIcon className="auth-icon" />
             <input
-              style={{ backgroundColor: "#fff" }}
               type="email"
               placeholder="Email Address"
               {...register("email", {
@@ -106,7 +98,6 @@ const Register = () => {
           <div className="auth-textbox">
             <UsernameIcon className="auth-icon" />
             <input
-              style={{ backgroundColor: "#fff" }}
               type="text"
               placeholder="Username"
               {...register("username", {
@@ -119,13 +110,9 @@ const Register = () => {
             <span className="error-message">{errors.username.message}</span>
           )}
           <div className="auth-namesec">
-            <div
-              className="auth-textbox"
-              style={{ marginLeft: "-1px", marginTop: "-1px" }}
-            >
+            <div className="auth-textbox" style={{ marginLeft: "-1px" }}>
               <NameIcon className="auth-icon" />
               <input
-                style={{ backgroundColor: "#fff" }}
                 type="text"
                 placeholder="Firstname"
                 {...register("firstName", {
@@ -133,10 +120,9 @@ const Register = () => {
                 })}
               />
             </div>
-            <div className="auth-textbox" style={{ marginTop: "-1px" }}>
+            <div className="auth-textbox">
               <NameIcon className="auth-icon" />
               <input
-                style={{ backgroundColor: "#fff" }}
                 type="text"
                 placeholder="Lastname"
                 {...register("lastName", {
@@ -150,7 +136,7 @@ const Register = () => {
           ) : errors.lastName ? (
             <span className="error-message">{errors.lastName.message}</span>
           ) : null}
-          <div className="auth-textbox" style={{ marginTop: "-1px" }}>
+          <div className="auth-textbox">
             <PasswordIcon className="auth-icon" />
             <input
               style={{ backgroundColor: "#fff" }}
@@ -165,6 +151,7 @@ const Register = () => {
               })}
             />
             <button
+              aria-label="VisibilityIcon btn"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >
@@ -177,7 +164,6 @@ const Register = () => {
           <div className="auth-textbox">
             <PasswordIcon className="auth-icon" />
             <input
-              style={{ backgroundColor: "#fff" }}
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
               {...register("confirmPassword", {
@@ -191,6 +177,7 @@ const Register = () => {
               })}
             />
             <button
+              aria-label="VisibilityIcon btn"
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
@@ -203,7 +190,7 @@ const Register = () => {
             </span>
           )}
           <div
-            className="auth-miscellaneous"
+            className="auth-miscellaneous m-1"
             style={{ color: isDarkMode ? "white" : "black" }}
           >
             <span className="m-2">
@@ -211,6 +198,7 @@ const Register = () => {
             </span>
             <label className="auth-checkbox m-1">
               <input
+                className="mr-2 mt-1"
                 type="checkbox"
                 {...register("agree", {
                   required: "Please agree to the Terms and Privacy Policy",
