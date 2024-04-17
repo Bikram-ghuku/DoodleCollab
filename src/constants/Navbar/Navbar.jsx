@@ -1,9 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { HiMiniBars2 } from "react-icons/hi2";
 import { RxCross1 } from "react-icons/rx";
 import logo from "../../assets/logo.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import sunIcon from "../../assets/svg/sun.svg";
 import moonIcon from "../../assets/svg/moon.svg";
 import "./navbar.css";
@@ -12,10 +11,17 @@ import { useAppContext } from "../../context/AppContext";
 const Navbar = ({ isBarsClicked, handleBarsClick }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { updateLoggedIn, isLoggedIn } = useAppContext();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     updateLoggedIn(false);
+    navigate("/login");
   };
+
+  const currentPath = window.location.pathname;
+
+  const dynamicLink = isLoggedIn && currentPath === "/" ? "/sketchbook" : "/";
+
 
   return (
     <nav
@@ -29,8 +35,8 @@ const Navbar = ({ isBarsClicked, handleBarsClick }) => {
 
       <div className="navbar-middle">
         <div className="nav-items">
-          <Link to="/" className="nav-item">
-            Home
+          <Link to={dynamicLink} className="nav-item">
+            {isLoggedIn && currentPath === "/" ? "Sketchbook" : "Home"}
           </Link>
 
           <Link to="/features" className="nav-item">
@@ -47,19 +53,20 @@ const Navbar = ({ isBarsClicked, handleBarsClick }) => {
           </Link>
         </div>
         {isLoggedIn ? (
-          <Link
-            to="/login"
-            className={`nav-signup ${isDarkMode ? "dark-mode" : "white-mode"}`}
+          <button
+            className={`nav-signup w-max ${
+              isDarkMode ? "dark-mode" : "white-mode"
+            }`}
             onClick={handleLogout}
           >
-            Sign Out
-          </Link>
+            Log out
+          </button>
         ) : (
           <Link
             to="/register"
             className={`nav-signup ${isDarkMode ? "dark-mode" : "white-mode"}`}
           >
-            Sign Up
+            Register
           </Link>
         )}
       </div>

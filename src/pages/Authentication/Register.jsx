@@ -3,8 +3,8 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import registerImg from "../../assets/register.jpg";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { MdOutlineRemoveRedEye } from "react-icons/md";
+import { AiOutlineEyeInvisible } from "react-icons/ai";
 import {
   UsernameIcon,
   PasswordIcon,
@@ -15,6 +15,7 @@ import { useTheme } from "../../context/ThemeContext";
 import "./auth.css";
 import { useAppContext } from "../../context/AppContext";
 import { useMutation } from "@tanstack/react-query";
+import { ImSpinner9 } from "react-icons/im";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,13 +31,12 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
-  const { mutate: registerUserMutate } = useMutation({
-    mutationFn: (user) =>
-      axios.post(
-        "https://doodlecollab-backend.onrender.com/api/users/register",
-        user
-      ),
-  });
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const { mutate: registerUserMutate, isPending: isRegisterPending } =
+    useMutation({
+      mutationFn: (user) => axios.post(`${apiUrl}/api/users/register`, user),
+    });
 
   const onSubmit = handleSubmit(
     ({ email, username, firstName, lastName, password }) => {
@@ -151,11 +151,15 @@ const Register = () => {
               })}
             />
             <button
-              aria-label="VisibilityIcon btn"
+              aria-label="MdOutlineRemoveRedEye btn"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              {showPassword ? (
+                <MdOutlineRemoveRedEye size={20} />
+              ) : (
+                <AiOutlineEyeInvisible size={20} />
+              )}
             </button>
           </div>
           {errors.password && (
@@ -177,11 +181,15 @@ const Register = () => {
               })}
             />
             <button
-              aria-label="VisibilityIcon btn"
+              aria-label="MdOutlineRemoveRedEye btn"
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              {showConfirmPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              {showConfirmPassword ? (
+                <MdOutlineRemoveRedEye size={20} />
+              ) : (
+                <AiOutlineEyeInvisible size={20} />
+              )}
             </button>
           </div>
           {errors.confirmPassword && (
@@ -225,8 +233,13 @@ const Register = () => {
             {errors.agree && (
               <span className="error-message">{errors.agree.message}</span>
             )}
-            <button className="auth-btn" type="submit">
-              <p>Create Account</p>
+            <button
+              disabled={isRegisterPending}
+              className="w-full text-white justify-center p-3 rounded-lg inline-flex gap-3 items-center disabled:bg-black/50 transition-colors bg-black hover:bg-black/80 font-semibold text-base my-2"
+              type="submit"
+            >
+              {isRegisterPending && <ImSpinner9 className="animate-spin" />}
+              <span>Create Account</span>
             </button>
             <span>
               Already a member?{" "}
@@ -235,7 +248,7 @@ const Register = () => {
                 to="/login"
                 style={{ color: isDarkMode ? "white" : "black" }}
               >
-                Sign in
+                Log in
               </Link>
             </span>
           </div>

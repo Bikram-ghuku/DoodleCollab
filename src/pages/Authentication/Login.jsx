@@ -4,12 +4,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import loginImg from "../../assets/register.jpg";
 import { PasswordIcon, MailIcon } from "../../assets/RegisterIcons";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { MdOutlineRemoveRedEye } from "react-icons/md";
+import { AiOutlineEyeInvisible } from "react-icons/ai";
 import { useTheme } from "../../context/ThemeContext";
 import "./auth.css";
 import { useAppContext } from "../../context/AppContext";
 import { useMutation } from "@tanstack/react-query";
+import { ImSpinner9 } from "react-icons/im";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,12 +24,10 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const { mutate: loginUserMutate } = useMutation({
-    mutationFn: (user) =>
-      axios.post(
-        "https://doodlecollab-backend.onrender.com/api/users/login",
-        user
-      ),
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const { mutate: loginUserMutate, isPending: isLoginPending } = useMutation({
+    mutationFn: (user) => axios.post(`${apiUrl}/api/users/login`, user),
   });
 
   const onSubmit = handleSubmit(({ email, password }) => {
@@ -91,18 +90,27 @@ const Login = () => {
               })}
             />
             <button
-              aria-label="VisibilityIcon btn"
+              aria-label="MdOutlineRemoveRedEye btn"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              {showPassword ? (
+                <MdOutlineRemoveRedEye size={20} />
+              ) : (
+                <AiOutlineEyeInvisible size={20} />
+              )}
             </button>
           </div>
           {errors.password && (
             <span className="error-message">{errors.password.message}</span>
           )}
-          <button className="auth-btn" type="submit">
-            <p>Login</p>
+          <button
+            disabled={isLoginPending}
+            className="w-full text-white justify-center p-3 rounded-lg inline-flex gap-3 items-center disabled:bg-black/50 transition-colors bg-black hover:bg-black/80 font-semibold text-base"
+            type="submit"
+          >
+            {isLoginPending && <ImSpinner9 className="animate-spin" />}
+            <span>Log in</span>
           </button>
           <div className="auth-textbox-footer">
             <span>
@@ -112,7 +120,7 @@ const Login = () => {
                 to="/register"
                 style={{ color: isDarkMode ? "white" : "black" }}
               >
-                Click here to create
+                Register
               </Link>
             </span>
             <span>

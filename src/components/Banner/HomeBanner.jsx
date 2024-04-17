@@ -3,9 +3,9 @@ import "./homebanner.css";
 import { useTheme } from "../../context/ThemeContext";
 import { FaPlay, FaPlus, FaRegHeart } from "react-icons/fa";
 import { LuMessageSquare, LuPen } from "react-icons/lu";
-import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { HiOutlineMail } from "react-icons/hi";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { MdOutlineRemoveRedEye } from "react-icons/md";
+import { AiOutlineEyeInvisible } from "react-icons/ai";
 import { useForm } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
@@ -20,6 +20,7 @@ import homeBannerUI from "../../assets/Home/homeBannerUI.png";
 import johnDoe from "../../assets/Home/johnDoe.png";
 import { useAppContext } from "../../context/AppContext";
 import { useMutation } from "@tanstack/react-query";
+import { ImSpinner9 } from "react-icons/im";
 
 const HomeBanner = () => {
   const { isDarkMode } = useTheme();
@@ -29,12 +30,10 @@ const HomeBanner = () => {
 
   const { register, handleSubmit } = useForm();
 
-  const { mutate: loginUserMutate } = useMutation({
-    mutationFn: (user) =>
-      axios.post(
-        "https://doodlecollab-backend.onrender.com/api/users/login",
-        user
-      ),
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const { mutate: loginUserMutate, isPending: isLoginPending } = useMutation({
+    mutationFn: (user) => axios.post(`${apiUrl}/api/users/login`, user),
   });
 
   const onSubmit = handleSubmit(({ email, password }) => {
@@ -51,6 +50,7 @@ const HomeBanner = () => {
           navigate("/sketchbook");
         },
         onError: () => {
+          updateLoggedIn(false);
           showToast({ message: "Login Failed!", type: "ERROR" });
         },
       }
@@ -247,13 +247,18 @@ const HomeBanner = () => {
                     ) : (
                       <i className="icon-input-icon">
                         {" "}
-                        <VisibilityOffIcon />
+                        <AiOutlineEyeInvisible size={24} />
                       </i>
                     )}
                   </button>
                 </div>
-                <button className="login-button" type="submit">
-                  Login
+                <button
+                  disabled={isLoginPending}
+                  className="text-base text-[#1976d2] border border-[#1976d2] inline-flex justify-center items-center gap-4 font-semibold rounded-full py-2 mt-10 w-[88%] transition-colors hover:bg-[#1976d2] hover:text-white disabled:opacity-60"
+                  type="submit"
+                >
+                  {isLoginPending && <ImSpinner9 className="animate-spin" />}
+                  <span>Login</span>
                 </button>
               </form>
             </div>
